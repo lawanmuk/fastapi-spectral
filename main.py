@@ -8,6 +8,7 @@ import io
 import scipy.stats as stats
 from fastapi.middleware.cors import CORSMiddleware
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +29,7 @@ def greet_user(name: str):
 class DataInput(BaseModel):
     values: List[float]
     weights: Optional[list[float]]=Field(None, description="Optional weights for weighted average")
+    chart_type: Optional[str] = "histogram"
 
 
 @app.post("/analyse-data")
@@ -100,6 +102,31 @@ def plot_data(data: DataInput):
 
 
     buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close()
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+
+
+@app.post("/plot-data-histogram")
+def plot_data_histogram(data: DataInput):
+    values = data.values
+    chart_type = data.chart_type
+
+    plt.figure(figsize=(6,4))
+
+    if chart_type == "line":
+        plt.plot(values, marker='o', linestyle='-', color='blue')
+        plt.xlabel("Index")
+        plt.ylabel("Value")
+    else:
+        plt.hist(values, bins=10, color='skyblue', edgecolor='black')
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+
+    buf = io.BytesIO()
+    plt.tight_layout()
     plt.savefig(buf, format='png')
     plt.close()
     buf.seek(0)
