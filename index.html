@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spectral Data Visualization</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    img { margin-top: 20px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Spectral API Histogram Viewer</h1>
+
+  <label for="values">Enter numbers (comma separated):</label><br>
+  <input type="text" id="values" placeholder="e.g. 1,2,2,3,4,4,5">
+  <br>
+  <button onclick="sendData()">Generate Plot</button>
+
+  <div>
+    <h3>Histogram Output:</h3>
+    <img id="plot" src="" alt="Histogram will appear here" />
+  </div>
+
+  <script>
+    async function sendData() {
+      const input = document.getElementById("values").value;
+      const values = input.split(',').map(Number).filter(n => !isNaN(n));
+
+      const response = await fetch("http://127.0.0.1:8000/plot-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ values: values })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const imgURL = URL.createObjectURL(blob);
+        document.getElementById("plot").src = imgURL;
+      } else {
+        alert("Error generating plot");
+      }
+    }
+  </script>
+</body>
+</html>
