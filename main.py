@@ -4,7 +4,7 @@ from typing import List, Optional
 import statistics
 import numpy as np
 import matplotlib.pyplot as plt
-import io
+import io, base64
 import scipy.stats as stats
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,7 +30,8 @@ class DataInput(BaseModel):
     values: List[float]
     weights: Optional[list[float]]=Field(None, description="Optional weights for weighted average")
     chart_type: Optional[str] = "histogram"
-
+    bins: Optional[int] = Field(10, description="Number of bins for histogram")
+    as_base64: Optional[bool] = Field(False, description="Return image as base64 string")
 
 @app.post("/analyse-data")
 def analyse_data(data: DataInput):
@@ -113,6 +114,8 @@ def plot_data(data: DataInput):
 def plot_data_histogram(data: DataInput):
     values = data.values
     chart_type = data.chart_type
+    bins = data.bins or 10
+    as_base64 = data.as_base64
 
     plt.figure(figsize=(6,4))
 
@@ -131,4 +134,8 @@ def plot_data_histogram(data: DataInput):
     plt.close()
     buf.seek(0)
 
-    return Response(content=buf.read(), media_type="image/png")
+    if as_base64:
+        img_str = base64.b64encode(buf.getvalue()).decode('utf-8')
+        return {"image_base64": f"data:image/png;base64,{img_str}"}
+    else:
+        return Response(content=buf.read(), media_type="image/png")
