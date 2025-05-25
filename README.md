@@ -1,5 +1,3 @@
-# fastapi-spectral
-A FastAPI-based API for scientific data processing and visualization.
 # 🔬 Spectral Data API
 
 A FastAPI-based application for analyzing and visualizing scientific datasets.  
