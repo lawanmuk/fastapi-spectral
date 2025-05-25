@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, UploadFile, File
 from pydantic import BaseModel, Field 
 from typing import List, Optional
 import statistics
@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import io, base64
 import scipy.stats as stats
 from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd 
+from routes import plot_csv_column  
 
 
 app = FastAPI()
@@ -17,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(plot_csv_column.router) 
 
 @app.get("/")
 def read_root():
@@ -139,3 +143,8 @@ def plot_data_histogram(data: DataInput):
         return {"image_base64": f"data:image/png;base64,{img_str}"}
     else:
         return Response(content=buf.read(), media_type="image/png")
+
+@app.post("/get-csv-columns")
+def get_csv_columns(file: UploadFile = File(...)):
+    df = pd.read_csv(file.file)
+    return {"columns": df.columns.tolist()}
